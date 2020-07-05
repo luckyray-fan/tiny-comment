@@ -4,7 +4,7 @@ import moment from 'moment';
 import { DislikeOutlined, LikeOutlined, DislikeFilled, LikeFilled } from '@ant-design/icons';
 import './style.scss'
 
-export default Demo = () => {
+export default function Demo(){
   const [likes, setLikes] = useState(0);
   const [dislikes, setDislikes] = useState(0);
   const [action, setAction] = useState(null);
@@ -12,7 +12,7 @@ export default Demo = () => {
   const like = () => {
     setLikes(1);
     setDislikes(0);
-    setAction('liked');
+    setAction('liked')
   };
 
   const dislike = () => {
