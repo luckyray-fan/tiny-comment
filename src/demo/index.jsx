@@ -1,68 +1,52 @@
-import React, { createElement, useState } from 'react';
-import { Comment, Tooltip, Avatar } from 'antd';
-import moment from 'moment';
-import { DislikeOutlined, LikeOutlined, DislikeFilled, LikeFilled } from '@ant-design/icons';
-import './style.scss'
+import "./style.scss";
+import React, { useState, useEffect } from "react";
+import { Input, Button } from "antd";
+import Comment from "./comment.jsx";
+import { leancloud } from "../api/index";
 
-export default function Demo(){
-  const [likes, setLikes] = useState(0);
-  const [dislikes, setDislikes] = useState(0);
-  const [action, setAction] = useState(null);
+const TextArea = Input.TextArea;
+const lc = new leancloud();
 
-  const like = () => {
-    setLikes(1);
-    setDislikes(0);
-    setAction('liked')
-  };
+export default function Demo() {
+  const [comments, setComments] = useState([]);
+  const [value, setValue] = useState("");
+  const [submitting, setSubmit] = useState(true);
+  useEffect(() => {
+    getComments()
+  }, []);
 
-  const dislike = () => {
-    setLikes(0);
-    setDislikes(1);
-    setAction('disliked');
-  };
-
-  const actions = [
-    <span key="comment-basic-like">
-      <Tooltip title="Like">
-        {createElement(action === 'liked' ? LikeFilled : LikeOutlined, {
-          onClick: like,
-        })}
-      </Tooltip>
-      <span className="comment-action">{likes}</span>
-    </span>,
-    <span key="comment-basic-dislike">
-      <Tooltip title="Dislike">
-        {React.createElement(action === 'disliked' ? DislikeFilled : DislikeOutlined, {
-          onClick: dislike,
-        })}
-      </Tooltip>
-      <span className="comment-action">{dislikes}</span>
-    </span>,
-    <span key="comment-basic-reply-to">Reply to</span>,
-  ];
+  async function getComments(){
+    const data = await lc.getData("your_title");
+    setComments(data);
+    setSubmit(false);
+  }
+  async function onSubmit() {
+    setSubmit(true);
+    const data = {
+      author: "123",
+      avatar: "https://i.loli.net/2020/07/07/jFn39Ktpi5waSyG.png",
+      content: value,
+      page: "your_title",
+      seq: comments.length + 1,
+    };
+    await lc.insert(data);
+    setSubmit(false);
+    getComments()
+  }
 
   return (
-    <Comment
-      actions={actions}
-      author={<a>Han Solo</a>}
-      avatar={
-        <Avatar
-          src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
-          alt="Han Solo"
-        />
-      }
-      content={
-        <p>
-          We supply a series of design principles, practical patterns and high quality design
-          resources (Sketch and Axure), to help people create their product prototypes beautifully
-          and efficiently.
-        </p>
-      }
-      datetime={
-        <Tooltip title={moment().format('YYYY-MM-DD HH:mm:ss')}>
-          <span>{moment().fromNow()}</span>
-        </Tooltip>
-      }
-    />
+    <>
+      <TextArea
+        rows={4}
+        onChange={(i) => {
+          setValue(i.target.value);
+        }}
+        value={value}
+      />
+      <Button htmlType="submit" loading={submitting} onClick={onSubmit} type="primary">
+        添加评论
+      </Button>
+      {Comment(comments)}
+    </>
   );
-};
+}
